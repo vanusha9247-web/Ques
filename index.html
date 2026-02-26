@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Surprise Grid</title>
+<style>
+body {
+  margin:0;
+  font-family:'Arial Black',Arial,sans-serif;
+  background:#0b0b12;
+  color:#fff;
+  overflow:auto; /* Enable scrolling */
+}
+h1{
+  text-align:center;
+  margin:20px;
+  color:#ffa500;
+  text-shadow:2px 2px 4px #000;
+}
+.grid-container{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(80px,1fr));
+  gap:10px;
+  max-width:900px;
+  margin:20px auto;
+  padding:10px;
+  position:relative;
+  z-index:10;
+}
+.grid-item{
+  background:#333;
+  height:80px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-radius:10px;
+  font-weight:bold;
+  font-size:20px;
+  cursor:pointer;
+  color:#ffa500;
+  box-shadow:0 4px 8px rgba(0,0,0,0.5);
+  transition:transform 0.2s,box-shadow 0.2s;
+  z-index:10;
+}
+.grid-item:hover{
+  transform:scale(1.1);
+  box-shadow:0 8px 16px rgba(0,0,0,0.7);
+}
+.modal{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,0.85);
+  z-index:1000;
+  overflow:auto;
+}
+.modal-content{
+  background:#1f1f2f;
+  padding:30px;
+  border-radius:15px;
+  text-align:center;
+  max-width:500px;
+  width:90%;
+  color:#fff;
+  position:relative;
+  border:2px solid #ffa500;
+}
+.question-text{
+  font-size:20px;
+  margin-bottom:20px;
+}
+.answer-button{
+  background:#ffa500;
+  border:none;
+  padding:12px 25px;
+  border-radius:10px;
+  color:#1b1b2f;
+  font-size:18px;
+  cursor:pointer;
+  transition: background 0.2s;
+  font-weight:bold;
+}
+.answer-button:hover{background:#ffcc33;}
+.early-message{
+  font-size:18px;
+  color:#ffa500;
+  margin-top:10px;
+  font-weight:bold;
+  animation:fadeinout 2s forwards;
+}
+@keyframes fadeinout{
+  0%{opacity:0;transform:translateY(20px);}
+  20%{opacity:1;transform:translateY(0);}
+  80%{opacity:1;transform:translateY(0);}
+  100%{opacity:0;transform:translateY(-20px);}
+}
+#finalModal{
+  position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.95);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:3000;
+  color:#ffa500;
+  text-align:center;
+  font-size:32px;
+  font-weight:bold;
+}
+canvas{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  pointer-events:none;
+  z-index:3000;
+}
+@media (max-width:600px){
+  .grid-item{height:100px;font-size:24px;}
+  .modal-content{padding:20px;width:90%;font-size:18px;}
+  .answer-button{padding:16px 30px;font-size:20px;}
+  h1{font-size:28px;}
+}
+</style>
+</head>
+<body>
+<h1>Happy Birthday, Babyyy! 🎉🎂</h1>
+<div class="grid-container" id="gridContainer"></div>
+
+<div class="modal" id="modal">
+  <div class="modal-content" id="modalContent">
+    <div class="question-text" id="questionText"></div>
+    <button class="answer-button" id="answerButton">Show Answer</button>
+    <div class="early-message" id="earlyMessage"></div>
+  </div>
+</div>
+
+<div id="finalModal">
+  <div>You know why 33 grids? Because you turn 33 this year! 🎉🎈<br>Happy Birthday, Babyyy! ❤️</div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+// Jokes
+const jokes = [
+  {q:"Why can’t skeletons fight each other? 💀", a:"They don’t have the guts. 😅💀", m:"Patience, buddy!"},
+  {q:"What do you call a factory that makes okay products? 🏭", a:"A satisfactory. ✅", m:"Think about it..."},
+  {q:"Why did the bicycle fall over? 🚲", a:"It was two-tired. 😴", m:"Slow down, man!"},
+  {q:"What do you call a sleeping bull? 🐂", a:"A bulldozer. 😴", m:"Chill vibes"},
+  {q:"Why did the stadium get hot after the game? 🏟️", a:"Because all the fans left. 💨", m:"Crowds make it hot!"},
+  {q:"What’s orange and sounds like a parrot? 🥕🦜", a:"A carrot. 🥕😂", m:"Veggie power!"},
+  {q:"Why is dark spelled with a 'k' and not a 'c'? 🌑", a:"Because you can’t see in the dark. 👀", m:"Think hard!"},
+  {q:"What did one wall say to the other wall? 🧱", a:"I’ll meet you at the corner. 🔲", m:"Solid teamwork!"},
+  {q:"What do you call a pile of cats? 🐱", a:"A meow-ntain. 🐾", m:"Purrfection"},
+  {q:"Why did the picture go to jail? 🖼️", a:"Because it was framed. 😎", m:"Stay sharp!"},
+  {q:"What do you call a sleeping pizza? 🍕", a:"A piZZZZa. 🍕💤", m:"Cheesy dreams"},
+  {q:"Why did the chair go to therapy? 🪑", a:"Because it had too many issues to stand up for itself. 😢", m:"Even furniture needs support"},
+  {q:"What is the hardest tea to swallow? 🍵", a:"Reali-Tea 😅", m:"Think, bro!"},
+  {q:"Why did the computer gain weight? 💻", a:"Because it accepted a lot of cookies 🍪", m:"Digital snacks!"},
+  {q:"Why you should never fart in an Apple store? 🍏", a:"Because there are no windows 🙊", m:"Careful now!"},
+  {q:"Farmer A sells corn 🌽; Farmer B sells milk 🥛; what does Farmer C sell?", a:"Farmer C sells medicines 💊", m:"Health first!"},
+  {q:"What did 20 do when hungry? 🔢", a:"28 (20 ate) 😆", m:"Math snack!"},
+  {q:"Which tea is the coldest tea ever? 🍵❄️", a:"Ooty(tea) 🥶", m:"Cool drink!"},
+  {q:"What do you call a tiny ocean wave? 🌊", a:"Microw-wave 😅", m:"Small but mighty"},
+  {q:"What do you call a door that's so cute? 🚪", a:"Adorable 😍", m:"Nice entry"},
+  {q:"What has two butts but kills people? 🍑💀", a:"AssAssin 😎", m:"Sneaky!"},
+  {q:"Why did the math book look sad? 📖", a:"It had too many problems. 😢", m:"Keep solving!"},
+  {q:"Why did the mango sit alone? 🥭", a:"It didn’t want to get into a pickle. 😅", m:"Solo vibes"},
+  {q:"Why did the chapati fail the race? 🫓", a:"It couldn’t roll fast enough. 🏃‍♂️", m:"Take it slow"},
+  {q:"Why did the chai break up with the coffee? ☕", a:"It was too hot to handle 🔥", m:"Hot stuff"},
+  {q:"Why did the jalebi get promoted? 🍯", a:"It always knew how to twist the situation. 😉", m:"Sweet twist"},
+  {q:"Why did the ladoo stay next to me? 🍬", a:"Because life is sweeter with you. ❤️", m:"Sweet bro"},
+  {q:"Why do I love Indian weddings? 💍", a:"Because every celebration reminds me of you. 🥳", m:"Party vibes!"},
+  {q:"What do you call a masala dosa with feelings? 🥞💖", a:"Rolling in love. 😍", m:"Spicy feelings"},
+  {q:"Why do ladoos never fight? 🍬", a:"Because love is sweeter than arguments. ❤️", m:"Sweet victory"},
+  {q:"How does a samosa apologize? 🥟", a:"I’m sorry, I was stuffed with emotions. 😅", m:"Stuffed heart"},
+  {q:"What do you call a biryani with attitude? 🍛😎", a:"Extra masala. 🌶️", m:"Spicy bro"},
+  {q:"How do idlis say 'I miss you'? 🍚", a:"By steaming quietly in your thoughts. 🥺", m:"Steamy thoughts"}
+];
+
+// --- The rest of JS for grids, modal, answer logic and enhanced fireworks (as we discussed) ---
+// Use the previous realistic Firework class I sent you
+// Include Balloon, Confetti classes, openModal logic with 5-second early-click hide
+// Keep animate() loop as before
+
+</script>
+</body>
+</html>
