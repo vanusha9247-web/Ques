@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>33 Reasons I Love You</title>
+
+<style>
+body{
+margin:0;
+font-family: 'Segoe UI', sans-serif;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+overflow-x:hidden;
+}
+
+h1{
+text-align:center;
+padding:20px;
+font-size:28px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(80px,1fr));
+gap:15px;
+padding:20px;
+max-width:800px;
+margin:auto;
+}
+
+.box{
+background:rgba(255,255,255,0.1);
+border-radius:12px;
+padding:25px 0;
+text-align:center;
+font-size:20px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.box:hover{
+background:rgba(255,255,255,0.2);
+transform:scale(1.05);
+}
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.85);
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:9999;
+text-align:center;
+padding:20px;
+}
+
+.modal h2{
+margin-bottom:20px;
+}
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#ff9800;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+background:#ffa726;
+}
+
+canvas{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+z-index:10000;
+}
+
+.finalMessage{
+font-size:28px;
+text-align:center;
+max-width:600px;
+animation:fadeIn 3s forwards;
+}
+
+@keyframes fadeIn{
+from{opacity:0;}
+to{opacity:1;}
+}
+
+</style>
+</head>
+<body>
+
+<h1>33 Reasons I Love You ❤️</h1>
+
+<div class="grid" id="grid"></div>
+
+<div class="modal" id="modal">
+<h2 id="question"></h2>
+<p id="waitMsg"></p>
+<button id="answerBtn">Show Answer</button>
+<h2 id="answer"></h2>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+<script>
+
+const questions = [
+"Why can’t skeletons fight each other? 💀",
+"What do you call a factory that makes okay products? 🏭",
+"Why did the bicycle fall over? 🚲",
+"What do you call a sleeping bull? 🐂",
+"Why did the stadium get hot after the game? 🏟",
+"What’s orange and sounds like a parrot? 🥕",
+"Why is dark spelled with a K? 🌙",
+"What did one wall say to the other wall? 🧱",
+"What do you call a pile of cats? 🐱",
+"Why did the picture go to jail? 🖼",
+"What do you call a sleeping pizza? 🍕",
+"What is the hardest tea to swallow? ☕",
+"Why did the computer gain weight? 💻",
+"Why shouldn’t you fart in an Apple store? 🍎",
+"What did 20 do when hungry? 🔢",
+"What’s the coldest tea? ❄",
+"What do you call a tiny ocean wave? 🌊",
+"What do you call a cute door? 🚪",
+"What has two butts but kills people? 🥷",
+"Why did the math book look sad? 📘",
+"Why did the mango sit alone? 🥭",
+"Why did the chapati fail the race? 🫓",
+"Why did chai break up with coffee? ☕",
+"Why did jalebi get promoted? 🍥",
+"Why did ladoo stay next to me? 🍬",
+"What do you call masala dosa with feelings? 🥞",
+"Why do ladoos never fight? 🍡",
+"How does samosa apologize? 🥟",
+"What do you call biryani with attitude? 🍛",
+"How do idlis say I miss you? 🥥",
+"Why did the rickshaw driver wave? 🚕",
+"Why are you 33 grids special? 🎂",
+"Last surprise question ❤️"
+];
+
+const answers = [
+"They don’t have the guts.",
+"A satisfactory.",
+"It was two-tired.",
+"A bulldozer.",
+"Because all the fans left.",
+"A carrot.",
+"Because you can’t C in the dark.",
+"I’ll meet you at the corner.",
+"A meow-ntain.",
+"Because it was framed.",
+"A piZZZZa.",
+"Reali-Tea.",
+"It accepted too many cookies.",
+"Because there are no Windows.",
+"28 (twenty ate).",
+"Ooty.",
+"A microw-wave.",
+"Adorable.",
+"An assassin.",
+"It had too many problems.",
+"It didn’t want to get into a pickle.",
+"It couldn’t roll fast enough.",
+"It was too hot to handle.",
+"It knew how to twist things.",
+"Because life is sweeter with you.",
+"Rolling in love.",
+"Love is sweeter than arguments.",
+"I was stuffed with emotions.",
+"Extra masala.",
+"By steaming quietly in your thoughts.",
+"Because love deserves a hello.",
+"You’ll see at the end 😉",
+"Keep going my love ❤️"
+];
+
+const waitMessages = [
+"Think baby... you know this 😌",
+"No cheating! Brain first 😏",
+"Use that handsome brain 🧠",
+"Think harder mister 😎",
+"Hmmmmm almost there 😜",
+"Come onnnn 😂",
+"Think think think 🤔",
+"Don’t rushhh 😌",
+"Take your timeee 💭",
+"You got this 😁",
+"Wait for ittt ⏳",
+"Be patient love ❤️",
+"Processing brain... 🧠",
+"Still thinking? 😆",
+"Almostttt 😏",
+"Take a guess 😎",
+"Brain loading... 🔄",
+"Don’t tap too fast 😜",
+"Calm down ninja 🥷",
+"Math mode on 🤓",
+"Mango brain time 🥭",
+"Roll your thoughts 🫓",
+"Hot brain moment 🔥",
+"Twist your thinking 🍥",
+"Sweet brain 🍬",
+"Feel ittt 🥞",
+"No fighting brain 🍡",
+"Stuffed thoughts 🥟",
+"Masala brain 🍛",
+"Steam thinking 🥥",
+"Wave hello to answer 🚕",
+"Almost final 😍",
+"Big surprise loading 🎁"
+];
+
+const grid = document.getElementById("grid");
+const modal = document.getElementById("modal");
+const questionEl = document.getElementById("question");
+const answerEl = document.getElementById("answer");
+const waitMsgEl = document.getElementById("waitMsg");
+const answerBtn = document.getElementById("answerBtn");
+
+let currentIndex = 0;
+let unlocked = false;
+let openedCount = 0;
+
+for(let i=0;i<33;i++){
+const box=document.createElement("div");
+box.className="box";
+box.innerText=i+1;
+box.onclick=()=>openQuestion(i);
+grid.appendChild(box);
+}
+
+function openQuestion(i){
+currentIndex=i;
+modal.style.display="flex";
+questionEl.innerText=questions[i];
+answerEl.innerText="";
+waitMsgEl.innerText="";
+answerBtn.style.display="block";
+unlocked=false;
+setTimeout(()=>unlocked=true,5000);
+}
+
+answerBtn.onclick=function(){
+if(!unlocked){
+waitMsgEl.innerText=waitMessages[currentIndex];
+answerBtn.style.display="none";
+setTimeout(()=>{
+answerBtn.style.display="block";
+waitMsgEl.innerText="";
+},5000);
+return;
+}
+
+answerEl.innerText=answers[currentIndex];
+fireworkBurst();
+openedCount++;
+if(openedCount===33){
+setTimeout(finalSurprise,3000);
+}
+}
+
+modal.onclick=function(e){
+if(e.target===modal){
+modal.style.display="none";
+}
+}
+
+const canvas=document.getElementById("fireworks");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+let particles=[];
+
+function fireworkBurst(){
+for(let i=0;i<100;i++){
+particles.push({
+x:canvas.width/2,
+y:canvas.height/2,
+angle:Math.random()*2*Math.PI,
+speed:Math.random()*5+2,
+radius:Math.random()*3+1,
+alpha:1
+});
+}
+}
+
+function animate(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+particles.forEach((p,index)=>{
+p.x+=Math.cos(p.angle)*p.speed;
+p.y+=Math.sin(p.angle)*p.speed;
+p.alpha-=0.01;
+if(p.alpha<=0) particles.splice(index,1);
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.radius,0,2*Math.PI);
+ctx.fillStyle="rgba(255,215,0,"+p.alpha+")";
+ctx.fill();
+});
+requestAnimationFrame(animate);
+}
+animate();
+
+function finalSurprise(){
+modal.innerHTML='<div class="finalMessage">Do you know why there were 33 grids?<br><br>Because you turn 33 this year.<br><br>And every single one is a reason I love you.<br><br><b>Happy Birthday, my love ❤️</b></div>';
+for(let i=0;i<10;i++){
+setTimeout(fireworkBurst,i*500);
+}
+}
+
+</script>
+</body>
+</html>
